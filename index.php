@@ -2,7 +2,18 @@
 include_once("functions/deviation.php");
 
 $deviation = new Deviation(json_decode(file_get_contents("generatedFiles/generatedInformation.json")), true);
+
+//change duration
+$deviation->shortOperationDuration = 20;
+$deviation->mediumOperationDuration = 60;
+
+//change percentage
+$deviation->shortOperationPercentage = 20;
+$deviation->mediumOperationPercentage = 12.5;
+$deviation->longOperationPercentage = 10;
+
 $deviationResults = $deviation->getDeviatingStatistics();
+
 ?>
 <style>
     .small {
