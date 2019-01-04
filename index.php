@@ -36,7 +36,12 @@ foreach (json_decode(file_get_contents("generatedFiles/generatedInformation.json
 //Remove all outliers
 foreach ($operationsWithTime as $key => $operation) {
     $temporary_list = [];
-    $deviation = stats_standard_deviation($operation["real"]);
+    if(count($operation["real"]) > 1) {
+        $deviation = stats_standard_deviation($operation["real"]);
+    }
+    else{
+        $deviation = "Te weinig data";
+    }
     $average = array_sum($operation["real"]) / count($operation["real"]);
     foreach ($operation["real"] as $singleKey => $singleNumber) {
         //remove outliers
@@ -61,8 +66,12 @@ foreach ($operationsWithTime as $operation => $time) {
     if ($operation !== "") {
         $amount = count($time["real"]);
         $averageTime = intval(array_sum($time["real"]) / $amount);
-        $stats_standard_dev = stats_standard_deviation($time["real"]);
-
+        if(count($time["real"]) > 1) {
+            $stats_standard_dev = stats_standard_deviation($time["real"]);
+        }
+        else{
+            $stats_standard_dev = "Te weinig data";
+        }
         switch (true) {
             case ($averageTime <= 20):
                 //percentage that decides whether a operation in this array is too long
@@ -72,7 +81,7 @@ foreach ($operationsWithTime as $operation => $time) {
                 break;
             case ($averageTime > 20 && $averageTime <= 60):
                 //medium operation
-                $percentage = 0.18;
+                $percentage = 0.2;
                 $mediumOperations[$operation] = $time;
                 $mediumOperations[$operation] = addOperationInformation($mediumOperations[$operation], $amount, $averageTime, $stats_standard_dev, $percentage);
                 break;
@@ -90,36 +99,34 @@ foreach ($operationsWithTime as $operation => $time) {
 
 
 /**
- * This user-land implementation follows the implementation quite strictly;
- * it does not attempt to improve the code or algorithm in any way. It will
- * raise a warning if you have fewer than 2 values in your array, just like
- * the extension does (although as an E_USER_WARNING, not E_WARNING).
+ *  This function calculates the functions of a sample
+ *  NOTE: This function won't work on non-sample arrays
  *
- * @param array $a
- * @param bool $sample [optional] Defaults to false
- * @return float|bool The standard deviation or false on error.
+ * @param array $array
+ * @return float|bool Standard functions for send array, or false if an error occurred
  */
-function stats_standard_deviation(array $a, $sample = false)
+function stats_standard_deviation(array $array)
 {
-    $n = count($a);
-    if ($n === 0) {
-        trigger_error("The array has zero elements", E_USER_WARNING);
+    //count amount of elements
+    $n = count($array);
+
+    //warn for too few found elements
+    if ($n <= 1) {
+        trigger_error("The array has too few element", E_USER_WARNING);
         return false;
     }
-    if ($sample && $n === 1) {
-        trigger_error("The array has only 1 element", E_USER_WARNING);
-        return false;
-    }
-    $mean = array_sum($a) / $n;
-    $carry = 0.0;
-    foreach ($a as $val) {
-        $d = ((double)$val) - $mean;
-        $carry += $d * $d;
+
+    //calculate mean and initialize the square total
+    $mean = array_sum($array) / $n;
+    $squareTotal = 0.0;
+
+    //calculate (Xi - µ)²
+    foreach ($array as $val) {
+        $difference = ((double)$val) - $mean;
+        $squareTotal += $difference * $difference;
     };
-    if ($sample) {
-        --$n;
-    }
-    return sqrt($carry / $n);
+
+    return sqrt($squareTotal / ($n - 1));
 }
 
 
@@ -164,7 +171,7 @@ function addOperationInformation($operations, $amount, $averageTime, $stats_stan
         $operation["advice"] = "Goed inplanbaar";
     }
 
-    if ($amount < 3) {
+    if ($amount < 2) {
         $operation["advice"] = 'Te weinig data';
     }
 
@@ -224,7 +231,7 @@ uasort($longOperations, "orderByLength");
     }
 </style>
 <h1>Korte operaties (< 20 min)</h1>
-<h2>Als operaties van 20 minuten maximaal 4 minuten uitlopen krijgen deze een positief advies</h2>
+<h2>Als operaties van 20 minuten maximaal 4 minuten (20%) uitlopen krijgen deze een positief advies</h2>
 <table>
     <thead>
     <tr>
@@ -240,7 +247,7 @@ uasort($longOperations, "orderByLength");
     </thead>
     <tbody>
     <?php foreach ($shortOperations as $operation => $time): ?>
-        <tr class="<?php if ($time["amount"] < 3) {
+        <tr class="<?php if ($time["amount"] < 2) {
             echo 'disabled';
         } elseif ($time["advice"] == "Goed inplanbaar") {
             echo 'good';
@@ -259,7 +266,7 @@ uasort($longOperations, "orderByLength");
     </tbody>
 </table>
 <h1>Gemiddelde operaties (20 - 60 min)</h1>
-<h2>Als operaties van 60 minuten maximaal 10,8 minuten uitlopen krijgen deze een positief advies</h2>
+<h2>Operaties mogen 4 tot maximaal 12 minuten uitlopen (20%)</h2>
 <table>
     <thead>
     <tr>
@@ -275,7 +282,7 @@ uasort($longOperations, "orderByLength");
     </thead>
     <tbody>
     <?php foreach ($mediumOperations as $operation => $time): ?>
-        <tr class="<?php if ($time["amount"] < 3) {
+        <tr class="<?php if ($time["amount"] < 2) {
             echo 'disabled';
         } elseif ($time["advice"] == "Goed inplanbaar") {
             echo 'good';
@@ -296,7 +303,7 @@ uasort($longOperations, "orderByLength");
 </table>
 
 <h1>Lange operaties (>60 min)</h1>
-<h2>Als operaties van 120 minuten maximaal 12 minuten uitlopen krijgen deze een positief advies</h2>
+<h2>Operaties mogen 6 minuten uitlopen (10%)</h2>
 <table>
     <thead>
     <tr>
@@ -312,7 +319,7 @@ uasort($longOperations, "orderByLength");
     </thead>
     <tbody>
     <?php foreach ($longOperations as $operation => $time): ?>
-        <tr class="<?php if ($time["amount"] < 3) {
+        <tr class="<?php if ($time["amount"] < 2) {
             echo 'disabled';
         } elseif ($time["advice"] == "Goed inplanbaar") {
             echo 'good';
