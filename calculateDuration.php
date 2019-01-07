@@ -29,7 +29,7 @@ foreach (json_decode(file_get_contents("generatedFiles/generatedInformation.json
     $endTimePlanned = new DateTime($case->$plannedEndKey);
 
     //calculate difference
-    $diffPlanned = $endTime->diff($startTimePlanned);
+    $diffPlanned = $endTimePlanned->diff($startTimePlanned);
 
 
     $keyPlanned = "Geplande duur";
