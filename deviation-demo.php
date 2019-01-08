@@ -78,7 +78,7 @@ $deviationResults = $deviation->getDeviatingStatistics();
             <td><?= $time["advice"] ?></td>
             <td class="scrollable"><?= implode(",", $time["real"]) ?></td>
             <td class="scrollable"><?= implode('|', $time["removed"]) ?></td>
-            <td><?php if($time["amount"] >= 30){?> <a href="/afwijkingen?operation=<?= $operation ?>">Details</a> <?php } ?></td>
+            <td><?php if($time["amount"] >= 30){?> <a href="/afwijkingen?operation=<?= str_replace('+', '%plus%', $operation) ?>">Details</a> <?php } ?></td>
         </tr>
     <?php endforeach; ?>
     </tbody>
@@ -107,7 +107,7 @@ $deviationResults = $deviation->getDeviatingStatistics();
         } elseif ($time["advice"] == "Goed inplanbaar") {
             echo 'good';
         } ?>">
-            <td><a href="/afwijkingen?operation=<?= $operation ?>"><?= $operation ?></a></td>
+            <td><?= $operation ?></td>
             <td><?= $time["amount"] ?></td>
             <td><?= $time["mean"] ?></td>
             <td><?= $time["meanPlanned"] ?></td>
@@ -116,7 +116,7 @@ $deviationResults = $deviation->getDeviatingStatistics();
             <td><?= $time["advice"] ?></td>
             <td class="scrollable"><?= implode("|", $time["real"]) ?></td>
             <td class="scrollable"><?= implode('|', $time["removed"]) ?></td>
-            <td><?php if($time["amount"] >= 30){?> <a href="/afwijkingen?operation=<?= $operation ?>">Details</a> <?php } ?></td>
+            <td><?php if($time["amount"] >= 30){?> <a href="/afwijkingen?operation=<?= str_replace('+', '%plus%', $operation) ?>">Details</a> <?php } ?></td>
 
         </tr>
     <?php endforeach; ?>
@@ -147,7 +147,7 @@ $deviationResults = $deviation->getDeviatingStatistics();
         } elseif ($time["advice"] == "Goed inplanbaar") {
             echo 'good';
         } ?>">
-            <td><a href="/afwijkingen?operation=<?= $operation ?>"><?= $operation ?></a></td>
+            <td><?= $operation ?></td>
             <td><?= $time["amount"] ?></td>
             <td><?= $time["mean"] ?></td>
             <td><?= $time["meanPlanned"] ?></td>
@@ -156,8 +156,7 @@ $deviationResults = $deviation->getDeviatingStatistics();
             <td><?= $time["advice"] ?></td>
             <td class="scrollable"><?= implode("|", $time["real"]) ?></td>
             <td class="scrollable"><?= implode('|', $time["removed"]) ?></td>
-            <td><?php if($time["amount"] >= 30){?> <a href="/afwijkingen?operation=<?= $operation ?>">Details</a> <?php } ?></td>
-
+            <td><?php if($time["amount"] >= 30){?> <a href="/afwijkingen?operation=<?= str_replace('+', '%plus%', $operation) ?>">Details</a> <?php } ?></td>
         </tr>
     <?php endforeach; ?>
     </tbody>

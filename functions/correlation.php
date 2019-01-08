@@ -11,17 +11,13 @@ class Correlation
     //adjustable private fields
     private $keyToSearchFor = "Operatieduur";
 
-
-    //adjustable public fields
-
-
     //fields
     public $filteredOperations = [];
 
     //functions
 
     /***
-     * Gets triggered whem a Correlation class is made
+     * Gets triggered when a Correlation class is made
      * Removes deviating cases
      * @param $json - decoded object with of all operations
      * @param $operationTitle
@@ -54,10 +50,20 @@ class Correlation
         $this->filteredOperations = $this->removeOutliers($meanTime, $deviation, $selectedOperations);
     }
 
+    /***
+     * This function will calculate the correlation coefficient using the following functions
+     * - getAllPossibleKeys     / (get keys that have have numeric values
+     * - getRanks               / (rank the values from lowest value to higher value)
+     * - calculateDifference    / (calculates the d² to apply in Spearman's formula)
+     * - calculateCoefficient   / Calculates the correlation coefficient for each key that has a numeric value
+     * @return array
+     */
     public function calculateCorrelations()
     {
-
+        $allReturnArrays = [];
         $key_possibilities = $this->getAllPossibleKeys($this->filteredOperations);
+
+        //calculate correlation coefficient for all values that are numeric
         foreach ($key_possibilities as $possibleCorrelation) {
             $x = [];
             $y = [];
@@ -72,6 +78,7 @@ class Correlation
                 }
             }
 
+            //calculate values and save them in specified variables
             $rankedValueArray = $this->getRanks($this->keyToSearchFor, $possibleCorrelation, $x, $y);
             $return = $this->calculateDifference($rankedValueArray, $possibleCorrelation);
             $difference = $return["difference"];
@@ -79,13 +86,82 @@ class Correlation
 
             //if difference was calculated, calculate the coefficient
             if ($difference !== false && $count >= 2) {
-                echo $this->calculateCoefficient($difference, $count);
-                echo $possibleCorrelation . ' heeft invloed op ' . $this->keyToSearchFor . '<br/>';
+                $returnArray = [
+                    "xTitle" => $this->keyToSearchFor,
+                    "yTitle" => $possibleCorrelation,
+                    "coefficient" => $this->calculateCoefficient($difference, $count)
+                ];
+
+                //save the found result in the object that gets returned to the user
+                array_push($allReturnArrays, $returnArray);
             }
         }
+
+        return $allReturnArrays;
     }
 
+    /***
+     * Get an advise based on the correlation coefficient
+     * This function will return a 'DUTCH' language advise.
+     * @param $correlationCoefficient
+     * @param $xTitle
+     * @param $yTitle
+     * @return string
+     */
+    public function getCorrelationAdvise($correlationCoefficient, $xTitle, $yTitle)
+    {
+        //standard advise
+        $advise = 'Not possible to give an advise based on this number';
+        $positive = "Het gegeven '" . $xTitle . "' <b>lijkt langer te duren wanneer</b> '" . $yTitle . "' hoger is.";
+        $negative = "Het gegeven '" . $xTitle . "' <b>lijkt langer te duren wanneer</b> '" . $yTitle . "' lager is.";
+        $non = "Het gegeven '" . $xTitle . "' lijkt niet te correleren met '" . $yTitle . "'.";
+        $correlationType = " Er is sprake van een ";
+
+        switch ($correlationCoefficient) {
+            case ($correlationCoefficient >= 0.9 && $correlationCoefficient <= 1):
+                //very high positive correlation
+                $advise = $positive . $correlationType . "zeer hoge correlatie: " . $correlationCoefficient;
+                break;
+            case ($correlationCoefficient <= -0.9 && $correlationCoefficient >= -1):
+                //very high negative correlation
+                $advise = $negative . $correlationType . "zeer hoge correlatie: " . $correlationCoefficient;
+                break;
+            case ($correlationCoefficient >= 0.7 && $correlationCoefficient < 0.9):
+                //high positive correlation
+                $advise = $positive . $correlationType . "hoge correlatie: " . $correlationCoefficient;
+                break;
+            case ($correlationCoefficient <= -0.7 && $correlationCoefficient > -0.9):
+                //high negative correlation
+                $advise = $negative . $correlationType . "hoge correlatie: " . $correlationCoefficient;
+                break;
+            case ($correlationCoefficient >= 0.5 && $correlationCoefficient < 0.7):
+                //moderate positive correlation
+                $advise = $positive . $correlationType . "gematige correlatie: : " . $correlationCoefficient;
+                break;
+            case ($correlationCoefficient <= -0.5 && $correlationCoefficient > -0.7):
+                //moderate negative correlation
+                $advise = $negative . $correlationType . "gematige correlatie: : " . $correlationCoefficient;
+                break;
+            case ($correlationCoefficient >= 0.3 && $correlationCoefficient < 0.5):
+                //low positive correlation
+                $advise = $positive . $correlationType . "enige correlatie : " . $correlationCoefficient;
+                break;
+            case ($correlationCoefficient <= -0.3 && $correlationCoefficient > -0.5):
+                //low negative correlation
+                $advise = $negative . $correlationType . "enige correlatie : " . $correlationCoefficient;
+                break;
+            case ($correlationCoefficient >= -0.3 && $correlationCoefficient < 0.3):
+                //negligible correlation
+                $advise = $non . $correlationType . " geen tot te verwaarloze correlatie " . $correlationCoefficient;
+                break;
+        }
+        return $advise;
+    }
+
+
     /**
+     * Apply the Spearman's formula to the calculated d² and found n
+     * NOTE: This is the formula based on a sample of data
      * @param $d2
      * @param $n
      * @return float|int
@@ -248,6 +324,7 @@ class Correlation
 
         $operationWithoutOutlier = [];
 
+        //remove all cases that deviate 5 times the standard deviation from the mean number
         foreach ($operationArray as $operation) {
             $key = $this->keyToSearchFor;
             if ($operation->$key < $mean + ($deviation * 5) && $operation->$key > $mean - ($deviation * 5)) {
