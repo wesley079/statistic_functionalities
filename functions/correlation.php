@@ -169,10 +169,10 @@ class Correlation
     private function calculateCoefficient($d2, $n)
     {
 
-        $above = 6 * $d2;
-        $under = $n * (($n * $n) - 1);
+        $counter = 6 * $d2;
+        $denominator = $n * (($n * $n) - 1);
 
-        $coefficient = 1 - ($above / $under);
+        $coefficient = 1 - ($counter / $denominator);
         return $coefficient;
     }
 
@@ -259,10 +259,8 @@ class Correlation
      */
     private function calculateRanks($unOrdered)
     {
-
         $ordered = $unOrdered;
-        sort($ordered);
-
+        arsort($ordered);
         $countArray = [];
 
         //make a count array to make sure how many time a single value was found
@@ -277,7 +275,6 @@ class Correlation
         //determine the rank for each value
         $currentRank = 0;
         foreach ($countArray as $key => $singleValue) {
-
             if ($singleValue["count"] > 1) {
                 //multiple registered values were found earlier, calculate rank
                 $totalRankWithCurrentValue = 0;
