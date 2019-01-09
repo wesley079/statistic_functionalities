@@ -1,8 +1,9 @@
 <?php
-include_once("functions/deviation.php");
+include_once("functions/correlation.php");
+include_once("functions/Deviation.php");
 
-$deviation = new Deviation(json_decode(file_get_contents("generatedFiles/generatedInformation.json")), true);
-$deviationResults = $deviation->getDeviatingStatistics();
+$correlation = new Correlation(json_decode(file_get_contents("generatedFiles/generatedInformation.json")), str_replace('%plus%', '+', $_GET['operation']));
+
 ?>
 <style>
     .small {
@@ -35,111 +36,9 @@ $deviationResults = $deviation->getDeviatingStatistics();
         opacity: 0.3;
     }
 </style>
-<h1>Korte operaties (< 20 min)</h1>
-<h2>Als operaties van 20 minuten maximaal 4 minuten (20%) uitlopen krijgen deze een positief advies</h2>
-<table>
-    <thead>
-    <tr>
-        <th>Verrichting</th>
-        <th>Aantal metingen</th>
-        <th>Gemiddelde duur</th>
-        <th>Gemiddeld gepland</th>
-        <th>Verwachte tijdsduur</th>
-        <th>Advies</th>
-        <th>Gemeten data</th>
-        <th>Verwijderde extremen</th>
-    </tr>
-    </thead>
-    <tbody>
-    <?php foreach ($deviationResults["short"] as $operation => $time): ?>
-        <tr class="<?php if ($time["amount"] < 2) {
-            echo 'disabled';
-        } elseif ($time["advice"] == "Goed inplanbaar") {
-            echo 'good';
-        } ?>">
-            <td><?= $operation ?></td>
-            <td><?= $time["amount"] ?></td>
-            <td><?= $time["mean"] ?></td>
-            <td><?= $time["meanPlanned"] ?></td>
-            <td><?= intval($time["mean"] - $time["standardDev"]) ?>
-                - <?= intval($time["mean"] + $time["standardDev"]) ?></td>
-            <td><?= $time["advice"] ?></td>
-            <td class="scrollable"><?= implode("|", $time["real"]) ?></td>
-            <td class="scrollable"><?= implode('|', $time["removed"]) ?></td>
-        </tr>
-    <?php endforeach; ?>
-    </tbody>
-</table>
-<h1>Gemiddelde operaties (20 - 60 min)</h1>
-<h2>Operaties mogen 4 tot maximaal 12 minuten uitlopen (20%)</h2>
-<table>
-    <thead>
-    <tr>
-        <th>Verrichting</th>
-        <th>Aantal metingen</th>
-        <th>Gemiddelde duur</th>
-        <th>Gemiddeld gepland</th>
-        <th>Verwachte tijdsduur</th>
-        <th>Advies</th>
-        <th>Gemeten data</th>
-        <th>Verwijderde extremen</th>
-    </tr>
-    </thead>
-    <tbody>
-    <?php foreach ($deviationResults["medium"] as $operation => $time): ?>
-        <tr class="<?php if ($time["amount"] < 2) {
-            echo 'disabled';
-        } elseif ($time["advice"] == "Goed inplanbaar") {
-            echo 'good';
-        } ?>">
-            <td><?= $operation ?></td>
-            <td><?= $time["amount"] ?></td>
-            <td><?= $time["mean"] ?></td>
-            <td><?= $time["meanPlanned"] ?></td>
-            <td><?= intval($time["mean"] - $time["standardDev"]) ?>
-                - <?= intval($time["mean"] + $time["standardDev"]) ?></td>
-            <td><?= $time["advice"] ?></td>
-            <td class="scrollable"><?= implode("|", $time["real"]) ?></td>
-            <td class="scrollable"><?= implode('|', $time["removed"]) ?></td>
+<h1><?= str_replace('%plus%', '+', $_GET["operation"]); ?></h1>
+<?php $all = $correlation->calculateCorrelations();?>
+<?php foreach($all as $result): ?>
+    <?= $correlation->getCorrelationAdvise($result["coefficient"], $result["xTitle"], $result["yTitle"]); ?><br/><br/>
+<?php endforeach; ?>
 
-        </tr>
-    <?php endforeach; ?>
-    </tbody>
-</table>
-
-<h1>Lange operaties (>60 min)</h1>
-<h2>Operaties mogen 6 minuten uitlopen (10%)</h2>
-<table>
-    <thead>
-    <tr>
-        <th>Verrichting</th>
-        <th>Aantal metingen</th>
-        <th>Gemiddelde duur</th>
-        <th>Gemiddeld gepland</th>
-        <th>Verwachte tijdsduur</th>
-        <th>Advies</th>
-        <th>Gemeten data</th>
-        <th>Verwijderde extremen</th>
-    </tr>
-    </thead>
-    <tbody>
-    <?php foreach ($deviationResults["long"] as $operation => $time): ?>
-        <tr class="<?php if ($time["amount"] < 2) {
-            echo 'disabled';
-        } elseif ($time["advice"] == "Goed inplanbaar") {
-            echo 'good';
-        } ?>">
-            <td><?= $operation ?></td>
-            <td><?= $time["amount"] ?></td>
-            <td><?= $time["mean"] ?></td>
-            <td><?= $time["meanPlanned"] ?></td>
-            <td><?= intval($time["mean"] - $time["standardDev"]) ?>
-                - <?= intval($time["mean"] + $time["standardDev"]) ?></td>
-            <td><?= $time["advice"] ?></td>
-            <td class="scrollable"><?= implode("|", $time["real"]) ?></td>
-            <td class="scrollable"><?= implode('|', $time["removed"]) ?></td>
-
-        </tr>
-    <?php endforeach; ?>
-    </tbody>
-</table>

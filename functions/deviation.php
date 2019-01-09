@@ -60,7 +60,7 @@ class Deviation
         $this->getOperationTimes();
 
         if ($this->outliers) {
-            $this->removeOutliers();
+            $this->operationsWithTime = $this->removeOutliers($this->operationsWithTime);
         }
 
         //fill the short medium and long operation array based on surgery time
@@ -119,14 +119,16 @@ class Deviation
 
     /***
      * This function will remove all outliers from the field $operationsWithTime
+     * @param $operations
+     * @return mixed
      */
-    private function removeOutliers()
+    static function removeOutliers($operations)
     {
-        foreach ($this->operationsWithTime as $key => $operation) {
+        foreach ($operations as $key => $operation) {
 
             //Determine whether a standard deviation is possible to calculate
             if (count($operation["real"]) > 1) {
-                $deviation = $this->stats_standard_deviation($operation["real"]);
+                $deviation = Deviation::stats_standard_deviation($operation["real"]);
             } else {
                 $deviation = "Te weinig data";
             }
@@ -136,12 +138,13 @@ class Deviation
 
                 //remove outliers
                 if ($singleNumber < $mean - (5 * $deviation) || $singleNumber > (5 * $deviation) + $mean) {
-                    array_push($this->operationsWithTime[$key]["removed"], $singleNumber);
-                    unset($this->operationsWithTime[$key]["real"][$singleKey]);
+                    array_push($operations[$key]["removed"], $singleNumber);
+                    unset($operations[$key]["real"][$singleKey]);
 
                 }
             }
         }
+        return $operations;
     }
 
     /***
@@ -277,7 +280,7 @@ class Deviation
      * @param array $array
      * @return float|bool Standard functions for send array, or false if an error occurred
      */
-    function stats_standard_deviation(array $array)
+    static function stats_standard_deviation(array $array)
     {
         //count amount of elements
         $n = count($array);
