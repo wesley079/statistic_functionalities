@@ -274,8 +274,8 @@ class Deviation
 
 
     /**
-     *  This function calculates the functions of a sample
-     *  NOTE: This function won't work on non-sample arrays
+     *  This function calculates the functions of a population
+     *  NOTE: This function won't work on sample arrays
      *
      * @param array $array
      * @return float|bool Standard functions for send array, or false if an error occurred
@@ -301,6 +301,6 @@ class Deviation
             $squareTotal += $difference * $difference;
         };
 
-        return sqrt($squareTotal / ($n - 1));
+        return sqrt($squareTotal / $n);
     }
 }
