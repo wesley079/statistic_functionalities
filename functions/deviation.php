@@ -270,34 +270,30 @@ class Deviation
     }
 
 
-    /**
-     *  This function calculates the functions of a sample
-     *  NOTE: This function won't work on non-sample arrays
+     /**
+     *  This function calculates the functions of a population
+     *  NOTE: This function won't work on sample arrays
      *
      * @param array $array
      * @return float|bool Standard functions for send array, or false if an error occurred
      */
-    function stats_standard_deviation(array $array)
+    static function stats_standard_deviation(array $array)
     {
         //count amount of elements
         $n = count($array);
-
         //warn for too few found elements
         if ($n <= 1) {
             trigger_error("The array has too few element", E_USER_WARNING);
             return false;
         }
-
         //calculate mean and initialize the square total
         $mean = array_sum($array) / $n;
         $squareTotal = 0.0;
-
         //calculate (Xi - µ)²
         foreach ($array as $val) {
             $difference = ((double)$val) - $mean;
             $squareTotal += $difference * $difference;
         };
-
-        return sqrt($squareTotal / ($n - 1));
+        return sqrt($squareTotal / $n);
     }
 }
