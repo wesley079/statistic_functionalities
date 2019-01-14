@@ -101,9 +101,9 @@ $results = $correlation->calculateCorrelations();
 <h2>What does my result contain?</h2>
 <b>xTitle</b> - Title of the x-axis that was being measured<br/><br/>
 <b>yTitle</b> - Title of the y-axis that was being measured<br/><br/>
-<b>coefficient</b> - the correlation coefficient between the values of xTitle and yTitle</b>
+<b>coefficient</b> - the correlation coefficient between the values of xTitle and yTitle
 
-<h3>These results can be used to get a advise if wanted<h3/>
+<h3>These results can be used to get a advise if wanted</h3>
 
 ```
 <!--Example on how to treat the data-->
