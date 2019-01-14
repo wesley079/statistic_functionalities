@@ -1,6 +1,14 @@
 {
   "name": "wesleyk079/statistic_functionalities",
   "description": "Library that contains two classes: Correlation & Deviation. These classes can be used to calculate standard deviation and spearman's rank correlation.",
+  "type": "library",
+  "homepage": "https://github.com/wesley079/statistic_functionalities/blob/master/readme.md",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Wesley Kroon"
+    }
+  ],
   "require": {
      "php": "^7.1"
   }
