@@ -11,6 +11,8 @@ Require the library in your composer.json
 
 ```composer require wesleyk079/statistic_functionalities "dev-master"```
 
+Make sure your framework or php-script loads the 'autoload.php' from composer's vendor directory.
+
 ## #1 Deviation
 <b>Include the library:</b>
 
