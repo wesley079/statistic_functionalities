@@ -9,5 +9,8 @@
       "name": "Wesley Kroon"
     }
   ],
+  "autoload":{
+    "classmap": ["functions/"]
+  },
   "version": "1.0.0"
 }
