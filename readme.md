@@ -8,7 +8,7 @@ The demo included will give you an example on how to make use of this library
 ## #1 Deviation
 <b>Include the library:</b>
 
-Use 'statisticFunctionalities\Deviation';
+Use 'statisticFunctionalities\functions\Deviation';
 
 <b>Adjust the options as wanted</b>
 ```

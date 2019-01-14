@@ -44,7 +44,7 @@ $deviationResults = $deviation->getDeviatingStatistics();
 <?php if ($operation["amount"] >= 30): ?>
 <p>There were more than 30 values noted. This gives you the opportunity to see more detailed information on
     the following page: <a
-            href="correlation.php?searchValue=<?= $caseTitle ?>&keyToSearchFor=<?= $options["KeyToSearchFor"] ?>&keyToSelect=<?= $options["KeyToSelect"] ?>">Correlations</a></p>
+            href="correlation.php?searchValue=<?= str_replace('+', '%plus%',$caseTitle) ?>&keyToSearchFor=<?= $options["KeyToSearchFor"] ?>&keyToSelect=<?= $options["KeyToSelect"] ?>">Correlations</a></p>
         <?php endif; ?>
         <br/>
 

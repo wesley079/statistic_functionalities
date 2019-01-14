@@ -2,6 +2,7 @@
 
 namespace statisticFunctions\functions;
 
+use statisticFunctions\functions;
 /***
  * Correlation
  *

@@ -92,7 +92,7 @@ class Deviation
         $this->orderAllResults();
 
         //sort the different surgery types based on their duration
-        uasort($this->results, array('statisticFunctions\Deviation', 'orderByLength'));
+        uasort($this->results, array('statisticFunctions\functions\Deviation', 'orderByLength'));
 
         return $this->results;
     }
