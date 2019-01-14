@@ -1,9 +1,3 @@
-<?php
-//include classes
-include_once("../functions/correlation.php");
-include_once("../functions/deviation.php");
-
-?>
 <html>
 <head>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"/>
@@ -31,7 +25,7 @@ include_once("../functions/deviation.php");
     <div class="margin-top-30">
         <h2 class="row">3) You can view results here</h2>
         <span class="row">Be sure to upload a file first</span>
-        <div class="row"><a href="result.php"><button>Results</button></a></div>
+        <div class="row"><a href="deviation.php"><button>Results</button></a></div>
     </div>
 </div>
 </body>

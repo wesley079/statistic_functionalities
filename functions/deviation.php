@@ -1,11 +1,13 @@
 <?php
 
+namespace statisticFunctions;
+
 /***
  * Deviation Class
  *
  * This class turns raw JSON-exported data into arrays
  * The function getDeviatingStatistics will return one array filled with the keys "short, medium, long"
- * These times are adjustable programmatically by changing the public variables $shortDuration & $mediumDuration
+ * These times are adjustable programmatically by changing the public variables $firstCategory & $middleCategory
  * Also these percentages are adjustable programmatically
  *
  * The private variables are only adjustable in this class and need changes in this class to make them work correctly
@@ -15,53 +17,61 @@
 class Deviation
 {
 
-    //adjustable private fields
+    //Setting fields
     private $keyToSearchFor = "";
     private $tooFewCasesFeedback = "";
     private $firstKey = "";
     private $comparisonKey = "";
+    private $firstCategory = 20;
+    private $middleCategory = 60;
+    private $firstCatPercentage = 20;
+    private $middleCatPercentage = 20;
+    private $lastCatPercentage = 10;
+    private $rawJson = [];
+    private $resultsWithTime = [];
+    private $results = [];
+    private $outliers = false;
+    private $secondComparison = false;
+    private $negativeFeedback = "Niet goed";
+    private $positiveFeedback = "Goed";
 
-    //adjustable public fields
-    public $shortDuration = 20;
-    public $mediumDuration = 60;
-    public $shortPercentage = 20;
-    public $mediumPercentage = 20;
-    public $longPercentage = 10;
-
-    //fields
-    public $rawJson = [];
-    public $resultsWithTime = [];
-    public $shortResults = [];
-    public $mediumResults = [];
-    public $longResults = [];
-    public $outliers = false;
-    public $secondComparison = false;
-    public $negativeFeedback = "Niet goed";
-    public $positiveFeedback = "Goed";
     //functions
 
     /***
      * Gets triggered when a new Deviation class is made
-     * @param $json - decoded object with of all results
-     * @param bool $outliers (optional) | whether to remove outliers from the data (standard false)
-     * @param bool $secondComparison
-     * @param $searchKey
-     * @param $keyToFindDeviation
-     * @param null $secondKeyToFindDeviation
+     * @param array $options
      */
-    function Deviation($json, $searchKey, $keyToFindDeviation, $outliers = false, $secondComparison = false, $secondKeyToFindDeviation = null)
+    function __construct($options = [
+        "FileToCheck" => null,
+        "KeyToSelect" => "",
+        "KeyToSearchFor" => "",
+        "RemoveOutliers" => true,
+        "SecondComparison" => false,
+        "KeyToCompareMean" => "",
+        "FirstCategoryMax" => 10,
+        "MiddleCategoryMax" => 20,
+        "FirstPercentageMeasure" => 20,
+        "MiddlePercentageMeasure" => 12.5,
+        "LastPercentageMeasure" => 10,
+        "PositiveFeedback" => "Lower than the percentage you set",
+        "NegativeFeedback" => "Higher than the the percentage you set"
+
+    ])
     {
-        //fill class fields
-        $this->rawJson = $json;
-        $this->outliers = $outliers;
-
-        //second compare or not
-        $this->secondComparison = $secondComparison;
-
-        //keys to search for in this class
-        $this->keyToSearchFor = $searchKey;
-        $this->firstKey = $keyToFindDeviation;
-        $this->comparisonKey = $secondKeyToFindDeviation;
+        //set variables to
+        $this->rawJson = $options["FileToCheck"];
+        $this->keyToSearchFor = $options["KeyToSelect"];
+        $this->firstKey = $options["KeyToSearchFor"];
+        $this->outliers = $options["RemoveOutliers"];
+        $this->secondComparison = $options["SecondComparison"];
+        $this->comparisonKey = $options["KeyToCompareMean"];
+        $this->firstCategory = $options["FirstCategoryMax"];
+        $this->middleCategory = $options["MiddleCategoryMax"];
+        $this->firstCatPercentage = $options["FirstPercentageMeasure"];
+        $this->middleCatPercentage = $options["MiddlePercentageMeasure"];
+        $this->lastCatPercentage = $options["LastPercentageMeasure"];
+        $this->positiveFeedback = $options["PositiveFeedback"];
+        $this->negativeFeedback = $options["NegativeFeedback"];
     }
 
 
@@ -82,23 +92,14 @@ class Deviation
         $this->orderAllResults();
 
         //sort the different surgery types based on their duration
-        uasort($this->shortResults, array('Deviation', 'orderByLength'));
-        uasort($this->mediumResults, array('Deviation', 'orderByLength'));
-        uasort($this->longResults, array('Deviation', 'orderByLength'));
+        uasort($this->results, array('statisticFunctions\Deviation', 'orderByLength'));
 
-        //fill the return array and return it
-        $returnArray = [];
-
-        $returnArray["short"] = $this->shortResults;
-        $returnArray["medium"] = $this->mediumResults;
-        $returnArray["long"] = $this->longResults;
-
-        return $returnArray;
+        return $this->results;
     }
 
     /***
      * $this->resultsWithTime will be filled with all unique medical surgery options
-     * For each medical surgery there will be 3 options: realand comparison these surgeries took place
+     * For each medical surgery there will be 3 options: real and comparison these surgeries took place
      */
     private function getOperationTimes()
     {
@@ -120,7 +121,7 @@ class Deviation
             array_push($this->resultsWithTime[$result_key]["real"], $case->$searchKey);
 
             //only if second comparison is asked
-            if($this->secondComparison) {
+            if ($this->secondComparison) {
                 $comparison_key = $this->comparisonKey;
                 array_push($this->resultsWithTime[$result_key]["comparison"], $case->$comparison_key);
             }
@@ -170,58 +171,39 @@ class Deviation
      */
     private function orderAllResults()
     {
-        foreach ($this->resultsWithTime as $result => $time) {
+        foreach ($this->resultsWithTime as $result => $operation) {
 
             //skip empty result titles
             if ($result !== "") {
 
                 //basic needed statistics
-                $amount = count($time["real"]);
-                $meanTime = intval(array_sum($time["real"]) / $amount);
+                $amount = count($operation["real"]);
+                $meanTime = intval(array_sum($operation["real"]) / $amount);
 
                 //calculate the standard deviation if possible, if not give advice from $too_few_cases_feedback
-                if (count($time["real"]) > 1) {
-                    $stats_standard_dev = $this->stats_standard_deviation($time["real"]);
+                if (count($operation["real"]) > 1) {
+                    $stats_standard_dev = $this->stats_standard_deviation($operation["real"]);
                 } else {
                     $stats_standard_dev = $this->tooFewCasesFeedback;
                 }
 
-                //add to the right array based on mean surgery time
-                switch (true) {
-                    //short results
-                    case ($meanTime <= $this->shortDuration):
-                        //percentage that decides whether a result in this array is too long
-                        $percentage = ($this->shortPercentage / 100);
+                $percentage = 0;
+                $temporaryResult = null;
+                if ($meanTime <= $this->firstCategory) {
+                    //percentage that decides whether a result in this array is too long
+                    $percentage = ($this->firstCatPercentage / 100);
 
-                        //fill result with standard info
-                        $this->shortResults[$result] = $time;
+                } elseif ($meanTime > $this->firstCategory && $meanTime <= $this->middleCategory) {
+                    //percentage that decides whether a result in this array is too long
+                    $percentage = ($this->middleCatPercentage / 100);
 
-                        //add all extra logic
-                        $this->shortResults[$result] = $this->addOperationInformation($this->shortResults[$result], $amount, $meanTime, $stats_standard_dev, $percentage);
-                        break;
-                    //medium result
-                    case ($meanTime > $this->shortDuration && $meanTime <= $this->mediumDuration):
-                        //percentage that decides whether a result in this array is too long
-                        $percentage = ($this->mediumPercentage / 100);
-
-                        //fill result with standard info
-                        $this->mediumResults[$result] = $time;
-
-                        //add all extra logic
-                        $this->mediumResults[$result] = $this->addOperationInformation($this->mediumResults[$result], $amount, $meanTime, $stats_standard_dev, $percentage);
-                        break;
-                    //long result
-                    case ($meanTime > $this->mediumDuration):
-                        //percentage that decides whether a result in this array is too long
-                        $percentage = ($this->longPercentage / 100);
-
-                        //fill result with standard info
-                        $this->longResults[$result] = $time;
-
-                        //add all extra logic
-                        $this->longResults[$result] = $this->addOperationInformation($this->longResults[$result], $amount, $meanTime, $stats_standard_dev, $percentage);
-                        break;
+                } elseif ($meanTime > $this->middleCategory) {
+                    //percentage that decides whether a result in this array is too long
+                    $percentage = ($this->lastCatPercentage / 100);
                 }
+
+                $this->results[$result] = $this->addOperationInformation($operation, $amount, $meanTime, $stats_standard_dev, $percentage);
+
             }
         }
     }
@@ -244,21 +226,21 @@ class Deviation
         $result["amount"] = $amount;
         $result["mean"] = $meanTime;
         $result["standardDev"] = $stats_standard_dev;
-        $result["statistic_min"] = ($meanTime - 3 * $stats_standard_dev);
-        $result["statistic_max"] = ($meanTime + 3 * $stats_standard_dev);
-        $result["correct_plan"] = 0;
-        $result["wrong_plan"] = 0;
+        $result["statisticMin"] = ($meanTime - 3 * $stats_standard_dev);
+        $result["statisticMax"] = ($meanTime + 3 * $stats_standard_dev);
+        $result["lowerThanComparison"] = 0;
+        $result["higherThanComparison"] = 0;
 
-        if($this->secondComparison) {
+        if ($this->secondComparison) {
             $result["meanComparison"] = intval(array_sum($result["comparison"]) / count($result["comparison"]));
         }
 
         //check correctly comparison
         foreach ($result["real"] as $time) {
             if ($time < $result["comparison"]) {
-                $result["correct_plan"]++;
+                $result["lowerThanComparison"]++;
             } else {
-                $result["wrong_plan"]++;
+                $result["higherThanComparison"]++;
             }
         }
 
@@ -266,7 +248,7 @@ class Deviation
         $result["advice"] = $this->negativeFeedback;
 
 
-        if ($stats_standard_dev < ($meanTime * $percentage)) {
+        if (($stats_standard_dev * 3) < ($meanTime * $percentage)) {
             $result["advice"] = $this->positiveFeedback;
         }
 

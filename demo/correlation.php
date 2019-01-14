@@ -1,19 +1,17 @@
 <?php
-include_once("../functions/correlation.php");
-include_once("../functions/Deviation.php");
+include '../functions/correlation.php';
+include '../functions/deviation.php';
 
 //options to find the correlation
 $options = [
     "FileToCheck" => json_decode(file_get_contents("../generatedFiles/generatedInformation.json")),
     "KeyToSearchFor" => $_GET["keyToSearchFor"],
     "KeyToSelect" => $_GET["keyToSelect"],
-    "ValueForKeyToSelect" => str_replace('%plus%', '+', $_GET['searchValue'])
+    "ValueForKeyToSelect" => str_replace('%plus%', '+', $_GET['searchValue']),
+    "ExcludeKeywords" => ["Patiëntnummer", "Casusnummer"]
 ];
+$correlation = new statisticFunctions\Correlation($options);
 
-//create correlation class
-$correlation = new Correlation($options["FileToCheck"], $options["KeyToSearchFor"], $options["KeyToSelect"], $options["ValueForKeyToSelect"]);
-
-//calculate all correlations
 $all = $correlation->calculateCorrelations();
 ?>
 <style>

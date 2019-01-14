@@ -1,5 +1,7 @@
 <?php
 
+namespace statisticFunctions;
+
 /***
  * Correlation
  *
@@ -12,26 +14,36 @@ class Correlation
     private $keyToSearchFor = "";
 
     //fields
-    public $filteredOperations = [];
+    private $filteredOperations = [];
+    private $excludeKeyWords = [];
 
     //functions
 
     /***
      * Gets triggered when a Correlation class is made
      * Removes deviating cases
-     * @param $json - decoded object with of all operations
-     * @param $mainKey
-     * @param $selectKey
+     * @param array $options
      */
-    function Correlation($json, $searchKey, $selectKey, $selectKeyValue)
+    function __construct($options = [
+        "FileToCheck" => null,
+        "KeyToSearchFor" => "",
+        "KeyToSelect" => "",
+        "ValueForKeyToSelect" => "",
+        "ExcludeKeywords" => []
+    ])
     {
+        //save variable to make use of further on this function
+        $json = $options["FileToCheck"];
+        $key = $options["KeyToSelect"];
+        $selectKeyValue = $options["ValueForKeyToSelect"];
+        $this->keyToSearchFor = $options["KeyToSearchFor"];
+
+
         $selectedOperations = [];
         $allTimes = [];
         $meanTime = [];
-        $this->keyToSearchFor = $searchKey;
 
         foreach ($json as $operation) {
-            $key = $selectKey;
             if ($operation->$key === $selectKeyValue) {
                 array_push($selectedOperations, $operation);
 
@@ -67,35 +79,38 @@ class Correlation
 
         //calculate correlation coefficient for all values that are numeric
         foreach ($key_possibilities as $possibleCorrelation) {
-            $x = [];
-            $y = [];
-            foreach ($this->filteredOperations as $operation) {
+            if (!in_array($possibleCorrelation, $this->excludeKeyWords)) {
 
-                $key = $this->keyToSearchFor;
+                $x = [];
+                $y = [];
+                foreach ($this->filteredOperations as $operation) {
 
-                //check if both values exist and are numeric
-                if (is_numeric($operation->$key) && is_numeric($operation->$possibleCorrelation)) {
-                    array_push($x, $operation->$key);
-                    array_push($y, $operation->$possibleCorrelation);
+                    $key = $this->keyToSearchFor;
+
+                    //check if both values exist and are numeric
+                    if (is_numeric($operation->$key) && is_numeric($operation->$possibleCorrelation)) {
+                        array_push($x, $operation->$key);
+                        array_push($y, $operation->$possibleCorrelation);
+                    }
                 }
-            }
 
-            //calculate values and save them in specified variables
-            $rankedValueArray = $this->getRanks($this->keyToSearchFor, $possibleCorrelation, $x, $y);
-            $return = $this->calculateDifference($rankedValueArray, $possibleCorrelation);
-            $difference = $return["difference"];
-            $count = $return["count"];
+                //calculate values and save them in specified variables
+                $rankedValueArray = $this->getRanks($this->keyToSearchFor, $possibleCorrelation, $x, $y);
+                $return = $this->calculateDifference($rankedValueArray, $possibleCorrelation);
+                $difference = $return["difference"];
+                $count = $return["count"];
 
-            //if difference was calculated, calculate the coefficient
-            if ($difference !== false && $count >= 2) {
-                $returnArray = [
-                    "xTitle" => $this->keyToSearchFor,
-                    "yTitle" => $possibleCorrelation,
-                    "coefficient" => $this->calculateCoefficient($difference, $count)
-                ];
+                //if difference was calculated, calculate the coefficient
+                if ($difference !== false && $count >= 2) {
+                    $returnArray = [
+                        "xTitle" => $this->keyToSearchFor,
+                        "yTitle" => $possibleCorrelation,
+                        "coefficient" => $this->calculateCoefficient($difference, $count)
+                    ];
 
-                //save the found result in the object that gets returned to the user
-                array_push($allReturnArrays, $returnArray);
+                    //save the found result in the object that gets returned to the user
+                    array_push($allReturnArrays, $returnArray);
+                }
             }
         }
 
@@ -114,47 +129,47 @@ class Correlation
     {
         //standard advise
         $advise = 'Not possible to give an advise based on this number';
-        $positive = "Het gegeven '" . $xTitle . "' <b>lijkt langer te duren wanneer</b> '" . $yTitle . "' hoger is.";
-        $negative = "Het gegeven '" . $xTitle . "' <b>lijkt langer te duren wanneer</b> '" . $yTitle . "' lager is.";
-        $non = "Het gegeven '" . $xTitle . "' lijkt niet te correleren met '" . $yTitle . "'.";
-        $correlationType = " Er is sprake van een ";
+        $positive = "The variable '" . $xTitle . "' <b>looks like growing when </b> '" . $yTitle . "' is higher.";
+        $negative = "The variable '" . $xTitle . "' <b>looks like growing when </b> '" . $yTitle . "' is lower.";
+        $non = "The variable '" . $xTitle . "' doesn't looks like correlating with '" . $yTitle . "'.";
+        $correlationType = " The correlation is stated as ";
 
         switch ($correlationCoefficient) {
             case ($correlationCoefficient >= 0.9 && $correlationCoefficient <= 1):
                 //very high positive correlation
-                $advise = $positive . $correlationType . "zeer hoge correlatie: " . $correlationCoefficient;
+                $advise = $positive . $correlationType . "very high correlation: " . $correlationCoefficient;
                 break;
             case ($correlationCoefficient <= -0.9 && $correlationCoefficient >= -1):
                 //very high negative correlation
-                $advise = $negative . $correlationType . "zeer hoge correlatie: " . $correlationCoefficient;
+                $advise = $negative . $correlationType . "very high correlation: " . $correlationCoefficient;
                 break;
             case ($correlationCoefficient >= 0.7 && $correlationCoefficient < 0.9):
                 //high positive correlation
-                $advise = $positive . $correlationType . "hoge correlatie: " . $correlationCoefficient;
+                $advise = $positive . $correlationType . "high correlation: " . $correlationCoefficient;
                 break;
             case ($correlationCoefficient <= -0.7 && $correlationCoefficient > -0.9):
                 //high negative correlation
-                $advise = $negative . $correlationType . "hoge correlatie: " . $correlationCoefficient;
+                $advise = $negative . $correlationType . "high correlation: " . $correlationCoefficient;
                 break;
             case ($correlationCoefficient >= 0.5 && $correlationCoefficient < 0.7):
                 //moderate positive correlation
-                $advise = $positive . $correlationType . "gematige correlatie: : " . $correlationCoefficient;
+                $advise = $positive . $correlationType . "moderate correlation: " . $correlationCoefficient;
                 break;
             case ($correlationCoefficient <= -0.5 && $correlationCoefficient > -0.7):
                 //moderate negative correlation
-                $advise = $negative . $correlationType . "gematige correlatie: : " . $correlationCoefficient;
+                $advise = $negative . $correlationType . "moderate correlation: " . $correlationCoefficient;
                 break;
             case ($correlationCoefficient >= 0.3 && $correlationCoefficient < 0.5):
                 //low positive correlation
-                $advise = $positive . $correlationType . "enige correlatie : " . $correlationCoefficient;
+                $advise = $positive . $correlationType . "low correlation : " . $correlationCoefficient;
                 break;
             case ($correlationCoefficient <= -0.3 && $correlationCoefficient > -0.5):
                 //low negative correlation
-                $advise = $negative . $correlationType . "enige correlatie : " . $correlationCoefficient;
+                $advise = $negative . $correlationType . "low correlation : " . $correlationCoefficient;
                 break;
             case ($correlationCoefficient >= -0.3 && $correlationCoefficient < 0.3):
                 //negligible correlation
-                $advise = $non . $correlationType . " geen tot te verwaarloze correlatie " . $correlationCoefficient;
+                $advise = $non . $correlationType . " negligible correlation: " . $correlationCoefficient;
                 break;
         }
         return $advise;
