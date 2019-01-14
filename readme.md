@@ -1,9 +1,15 @@
-#Statistic functionalities
+# Statistic functionalities
 <b>This repository is made for solutions involving software from NewCompliance B.V Group</b>
 <br/><br/>
 The functions included in this library will calculate deviation and correlation in from a JSON file.
 
 The demo included will give you an example on how to make use of this library
+
+## Install the library
+
+Require the library in your composer.json
+
+```composer require wesleyk079/statistic_functionalities "dev-master"```
 
 ## #1 Deviation
 <b>Include the library:</b>
@@ -74,7 +80,7 @@ foreach($deviationResults as $result){
 
 <b>Include the library:</b>
 
-Use 'statisticFunctionalities\Correlation';
+Use 'statisticFunctionalities\functions\Correlation';
 
 <b>Adjust the options as wanted</b>
 ```
