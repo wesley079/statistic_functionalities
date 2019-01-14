@@ -3,7 +3,7 @@ include '../functions/deviation.php';
 
 //example 1
 $options = [
-    "FileToCheck" => json_decode(file_get_contents("../generatedFiles/generatedInformation.json")),
+    "FileToCheck" => json_decode(file_get_contents("generatedFiles/generatedInformation.json")),
     "KeyToSelect" => "Verrichting 1",
     "KeyToSearchFor" => "Operatieduur",
     "RemoveOutliers" => true,

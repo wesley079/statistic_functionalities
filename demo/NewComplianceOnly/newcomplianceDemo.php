@@ -7,7 +7,7 @@ function calculateDuration(){
 $newData = [];
 
 //go through each operation
-foreach (json_decode(file_get_contents("../../generatedFiles/generatedInformation.json")) as $case) {
+foreach (json_decode(file_get_contents("../generatedFiles/generatedInformation.json")) as $case) {
 
 /***
 * Real time
@@ -44,7 +44,7 @@ array_push($newData, $case);
 }
 
 //update file with operation time added
-file_put_contents("../../generatedFiles/generatedInformation.json", json_encode($newData));
+file_put_contents("../generatedFiles/generatedInformation.json", json_encode($newData));
 
 }
 
@@ -67,5 +67,4 @@ function deleteMultipleOperations(){
     file_put_contents("../generatedFiles/generatedInformation.json", json_encode($newData));
 
 }
-
 header('Location: '. '../');

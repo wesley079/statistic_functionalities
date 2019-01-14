@@ -4,7 +4,7 @@ include '../functions/deviation.php';
 
 //options to find the correlation
 $options = [
-    "FileToCheck" => json_decode(file_get_contents("../generatedFiles/generatedInformation.json")),
+    "FileToCheck" => json_decode(file_get_contents("generatedFiles/generatedInformation.json")),
     "KeyToSearchFor" => $_GET["keyToSearchFor"],
     "KeyToSelect" => $_GET["keyToSelect"],
     "ValueForKeyToSelect" => str_replace('%plus%', '+', $_GET['searchValue']),
