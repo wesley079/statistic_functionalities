@@ -18,20 +18,20 @@ $options = [
 ];
 //example 2
 
-$options = [
-    "FileToCheck" => json_decode(file_get_contents("../generatedFiles/generatedInformation.json")),
-    "KeyToSelect" => "MeasureName",
-    "KeyToSearchFor" => "Value",
-    "RemoveOutliers" => true,
-    "SecondComparison" => false,
-    "SecondKeyToFindDeviation" => null,
-    "FirstCategoryMax" => 1,
-    "MiddleCategoryMax" => 1000,
-    "FirstPercentageMeasure" => 20,
-    "MiddlePercentageMeasure" => 12.5,
-    "LastPercentageMeasure" => 10
-
-];
+//$options = [
+//    "FileToCheck" => json_decode(file_get_contents("../generatedFiles/generatedInformation.json")),
+//    "KeyToSelect" => "MeasureName",
+//    "KeyToSearchFor" => "Value",
+//    "RemoveOutliers" => true,
+//    "SecondComparison" => false,
+//    "SecondKeyToFindDeviation" => null,
+//    "FirstCategoryMax" => 1,
+//    "MiddleCategoryMax" => 1000,
+//    "FirstPercentageMeasure" => 20,
+//    "MiddlePercentageMeasure" => 12.5,
+//    "LastPercentageMeasure" => 10
+//
+//];
 
 
 $deviation = new Deviation($options["FileToCheck"], $options["KeyToSelect"], $options["KeyToSearchFor"], $options["RemoveOutliers"], $options["SecondComparison"], $options["SecondKeyToFindDeviation"]);
