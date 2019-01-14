@@ -9,8 +9,5 @@
       "name": "Wesley Kroon"
     }
   ],
-  "version": "1.0.0",
-  "require": {
-     "php": "^7.0"
-  }
+  "version": "1.0.0"
 }
