@@ -20,7 +20,7 @@ $options = [
 ];
 //example data
 
-$deviation = new statisticFunctions\Deviation($options);
+$deviation = new statisticFunctions\functions\Deviation($options);
 $deviationResults = $deviation->getDeviatingStatistics();
 ?>
 

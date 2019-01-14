@@ -1,6 +1,6 @@
 <?php
 
-namespace statisticFunctions;
+namespace statisticFunctions\functions;
 
 /***
  * Deviation Class

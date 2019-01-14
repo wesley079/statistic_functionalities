@@ -10,7 +10,7 @@ $options = [
     "ValueForKeyToSelect" => str_replace('%plus%', '+', $_GET['searchValue']),
     "ExcludeKeywords" => ["Patiëntnummer", "Casusnummer"]
 ];
-$correlation = new statisticFunctions\Correlation($options);
+$correlation = new statisticFunctions\functions\Correlation($options);
 
 $all = $correlation->calculateCorrelations();
 ?>
