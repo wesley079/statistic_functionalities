@@ -163,7 +163,7 @@ class Correlation
 
     /**
      * Apply the Spearman's formula to the calculated d² and found n
-     * NOTE: This is the formula based on a sample of data
+     * NOTE: This is the formula based on a population of data
      * @param $d2
      * @param $n
      * @return float|int
@@ -172,7 +172,7 @@ class Correlation
     {
 
         $counter = 6 * $d2;
-        $denominator = $n * (($n * $n) - 1);
+        $denominator = (pow($n, 3) - $n);
 
         $coefficient = 1 - ($counter / $denominator);
         return $coefficient;
