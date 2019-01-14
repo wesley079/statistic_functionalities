@@ -104,6 +104,7 @@ $results = $correlation->calculateCorrelations();
 <b>coefficient</b> - the correlation coefficient between the values of xTitle and yTitle
 
 <h3>These results can be used to get a advise if wanted<h3/>
+
 ```
 <!--Example on how to treat the data-->
 <?php foreach ($all as $result): ?>
@@ -111,7 +112,5 @@ $results = $correlation->calculateCorrelations();
     //Result: The variable 'Operatieduur' looks like growing when 'Wond open (min)' is higher. The correlation is stated as moderate correlation: 0.51029910576627
 
 <?php endforeach; ?>
-
-//
 ```
 
