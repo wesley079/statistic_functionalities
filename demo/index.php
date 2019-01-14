@@ -13,8 +13,8 @@
 
     <div class="margin-top-30">
         <h2 class="row">1) You can upload files here</h2>
-        <a href="../uploadJson.php"><button class="">JSON file</button></a>
-        <a href="../uploadCSV.php"><button class="">CSV file</button></a>
+        <a href="uploadJson.php"><button class="">JSON file</button></a>
+        <a href="uploadCSV.php"><button class="">CSV file</button></a>
     </div>
 
     <div class="margin-top-30">
