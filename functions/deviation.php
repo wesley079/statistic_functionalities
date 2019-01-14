@@ -5,7 +5,7 @@
  *
  * This class turns raw JSON-exported data into arrays
  * The function getDeviatingStatistics will return one array filled with the keys "short, medium, long"
- * These times are adjustable programmatically by changing the public variables $shortOperationDuration & $mediumOperationDuration
+ * These times are adjustable programmatically by changing the public variables $shortDuration & $mediumDuration
  * Also these percentages are adjustable programmatically
  *
  * The private variables are only adjustable in this class and need changes in this class to make them work correctly
@@ -16,37 +16,52 @@ class Deviation
 {
 
     //adjustable private fields
-    private $keyToSearchFor = "Verrichting 1";
-    private $tooFewCasesFeedback = "Te weinig data";
+    private $keyToSearchFor = "";
+    private $tooFewCasesFeedback = "";
+    private $firstKey = "";
+    private $comparisonKey = "";
 
     //adjustable public fields
-    public $shortOperationDuration = 20;
-    public $mediumOperationDuration = 60;
-    public $shortOperationPercentage = 20;
-    public $mediumOperationPercentage = 20;
-    public $longOperationPercentage = 10;
+    public $shortDuration = 20;
+    public $mediumDuration = 60;
+    public $shortPercentage = 20;
+    public $mediumPercentage = 20;
+    public $longPercentage = 10;
 
     //fields
     public $rawJson = [];
-    public $operationsWithTime = [];
-    public $shortOperations = [];
-    public $mediumOperations = [];
-    public $longOperations = [];
+    public $resultsWithTime = [];
+    public $shortResults = [];
+    public $mediumResults = [];
+    public $longResults = [];
     public $outliers = false;
-
-
+    public $secondComparison = false;
+    public $negativeFeedback = "Niet goed";
+    public $positiveFeedback = "Goed";
     //functions
 
     /***
      * Gets triggered when a new Deviation class is made
-     * @param $json - decoded object with of all operations
+     * @param $json - decoded object with of all results
      * @param bool $outliers (optional) | whether to remove outliers from the data (standard false)
+     * @param bool $secondComparison
+     * @param $searchKey
+     * @param $keyToFindDeviation
+     * @param null $secondKeyToFindDeviation
      */
-    function Deviation($json, $outliers = false)
+    function Deviation($json, $searchKey, $keyToFindDeviation, $outliers = false, $secondComparison = false, $secondKeyToFindDeviation = null)
     {
         //fill class fields
         $this->rawJson = $json;
         $this->outliers = $outliers;
+
+        //second compare or not
+        $this->secondComparison = $secondComparison;
+
+        //keys to search for in this class
+        $this->keyToSearchFor = $searchKey;
+        $this->firstKey = $keyToFindDeviation;
+        $this->comparisonKey = $secondKeyToFindDeviation;
     }
 
 
@@ -60,30 +75,30 @@ class Deviation
         $this->getOperationTimes();
 
         if ($this->outliers) {
-            $this->operationsWithTime = $this->removeOutliers($this->operationsWithTime);
+            $this->resultsWithTime = $this->removeOutliers($this->resultsWithTime);
         }
 
-        //fill the short medium and long operation array based on surgery time
-        $this->orderAllOperations();
+        //fill the short medium and long result array based on surgery time
+        $this->orderAllResults();
 
         //sort the different surgery types based on their duration
-        uasort($this->shortOperations, array('Deviation', 'orderByLength'));
-        uasort($this->mediumOperations, array('Deviation', 'orderByLength'));
-        uasort($this->longOperations, array('Deviation', 'orderByLength'));
+        uasort($this->shortResults, array('Deviation', 'orderByLength'));
+        uasort($this->mediumResults, array('Deviation', 'orderByLength'));
+        uasort($this->longResults, array('Deviation', 'orderByLength'));
 
         //fill the return array and return it
         $returnArray = [];
 
-        $returnArray["short"] = $this->shortOperations;
-        $returnArray["medium"] = $this->mediumOperations;
-        $returnArray["long"] = $this->longOperations;
+        $returnArray["short"] = $this->shortResults;
+        $returnArray["medium"] = $this->mediumResults;
+        $returnArray["long"] = $this->longResults;
 
         return $returnArray;
     }
 
     /***
-     * $this->operationsWithTime will be filled with all unique medical surgery options
-     * For each medical surgery there will be 3 options: real time, planned time and the days these surgeries took place
+     * $this->resultsWithTime will be filled with all unique medical surgery options
+     * For each medical surgery there will be 3 options: realand comparison these surgeries took place
      */
     private function getOperationTimes()
     {
@@ -92,71 +107,73 @@ class Deviation
 
             //check if index already exists
             $key = $this->keyToSearchFor;
-            $operation_key = $case->$key;
+            $result_key = $case->$key;
 
-            if (!array_key_exists($operation_key, $this->operationsWithTime)) {
-                //Key doesn't exist, make new key and add operation duration
-                $this->operationsWithTime[$operation_key]["real"] = [];
-                $this->operationsWithTime[$operation_key]["planned"] = [];
-                $this->operationsWithTime[$operation_key]["days"] = [];
+            if (!array_key_exists($result_key, $this->resultsWithTime)) {
+                //Key doesn't exist, make new key and add result duration
+                $this->resultsWithTime[$result_key]["real"] = [];
+                $this->resultsWithTime[$result_key]["comparison"] = [];
             }
 
-            //add operation duration to key with the specific time
-            array_push($this->operationsWithTime[$operation_key]["real"], $case->Operatieduur);
+            //add result to key with the specified value
+            $searchKey = $this->firstKey;
+            array_push($this->resultsWithTime[$result_key]["real"], $case->$searchKey);
 
-            $planned_key = "Geplande duur";
-            array_push($this->operationsWithTime[$operation_key]["planned"], $case->$planned_key);
+            //only if second comparison is asked
+            if($this->secondComparison) {
+                $comparison_key = $this->comparisonKey;
+                array_push($this->resultsWithTime[$result_key]["comparison"], $case->$comparison_key);
+            }
 
-            array_push($this->operationsWithTime[$operation_key]["days"], $case->Starttijd);
 
-            $this->operationsWithTime[$operation_key]["removed"] = [];
+            $this->resultsWithTime[$result_key]["removed"] = [];
 
-            //sort this operation's time
-            sort($this->operationsWithTime[$operation_key]["real"]);
-            sort($this->operationsWithTime[$operation_key]["planned"]);
+            //sort this result's time
+            sort($this->resultsWithTime[$result_key]["real"]);
+            sort($this->resultsWithTime[$result_key]["comparison"]);
         }
     }
 
     /***
-     * This function will remove all outliers from the field $operationsWithTime
-     * @param $operations
+     * This function will remove all outliers from the field $resultsWithTime
+     * @param $results
      * @return mixed
      */
-    static function removeOutliers($operations)
+    static function removeOutliers($results)
     {
-        foreach ($operations as $key => $operation) {
+        foreach ($results as $key => $result) {
 
             //Determine whether a standard deviation is possible to calculate
-            if (count($operation["real"]) > 1) {
-                $deviation = Deviation::stats_standard_deviation($operation["real"]);
+            if (count($result["real"]) > 1) {
+                $deviation = Deviation::stats_standard_deviation($result["real"]);
             } else {
                 $deviation = "Te weinig data";
             }
 
-            $mean = array_sum($operation["real"]) / count($operation["real"]);
-            foreach ($operation["real"] as $singleKey => $singleNumber) {
+            $mean = array_sum($result["real"]) / count($result["real"]);
+            foreach ($result["real"] as $singleKey => $singleNumber) {
 
                 //remove outliers
                 if ($singleNumber < $mean - (5 * $deviation) || $singleNumber > (5 * $deviation) + $mean) {
-                    array_push($operations[$key]["removed"], $singleNumber);
-                    unset($operations[$key]["real"][$singleKey]);
+                    array_push($results[$key]["removed"], $singleNumber);
+                    unset($results[$key]["real"][$singleKey]);
 
                 }
             }
         }
-        return $operations;
+        return $results;
     }
 
     /***
      * Calculate all needed information
-     * Add all operations to the three categories of surgery time
+     * Add all results to the three categories of surgery time
      */
-    private function orderAllOperations()
+    private function orderAllResults()
     {
-        foreach ($this->operationsWithTime as $operation => $time) {
+        foreach ($this->resultsWithTime as $result => $time) {
 
-            //skip empty operation titles
-            if ($operation !== "") {
+            //skip empty result titles
+            if ($result !== "") {
 
                 //basic needed statistics
                 $amount = count($time["real"]);
@@ -171,38 +188,38 @@ class Deviation
 
                 //add to the right array based on mean surgery time
                 switch (true) {
-                    //short operations
-                    case ($meanTime <= $this->shortOperationDuration):
-                        //percentage that decides whether a operation in this array is too long
-                        $percentage = ($this->shortOperationPercentage / 100);
+                    //short results
+                    case ($meanTime <= $this->shortDuration):
+                        //percentage that decides whether a result in this array is too long
+                        $percentage = ($this->shortPercentage / 100);
 
-                        //fill operation with standard info
-                        $this->shortOperations[$operation] = $time;
+                        //fill result with standard info
+                        $this->shortResults[$result] = $time;
 
                         //add all extra logic
-                        $this->shortOperations[$operation] = $this->addOperationInformation($this->shortOperations[$operation], $amount, $meanTime, $stats_standard_dev, $percentage);
+                        $this->shortResults[$result] = $this->addOperationInformation($this->shortResults[$result], $amount, $meanTime, $stats_standard_dev, $percentage);
                         break;
-                    //medium operation
-                    case ($meanTime > $this->shortOperationDuration && $meanTime <= $this->mediumOperationDuration):
-                        //percentage that decides whether a operation in this array is too long
-                        $percentage = ($this->mediumOperationPercentage / 100);
+                    //medium result
+                    case ($meanTime > $this->shortDuration && $meanTime <= $this->mediumDuration):
+                        //percentage that decides whether a result in this array is too long
+                        $percentage = ($this->mediumPercentage / 100);
 
-                        //fill operation with standard info
-                        $this->mediumOperations[$operation] = $time;
+                        //fill result with standard info
+                        $this->mediumResults[$result] = $time;
 
                         //add all extra logic
-                        $this->mediumOperations[$operation] = $this->addOperationInformation($this->mediumOperations[$operation], $amount, $meanTime, $stats_standard_dev, $percentage);
+                        $this->mediumResults[$result] = $this->addOperationInformation($this->mediumResults[$result], $amount, $meanTime, $stats_standard_dev, $percentage);
                         break;
-                    //long operation
-                    case ($meanTime > $this->mediumOperationDuration):
-                        //percentage that decides whether a operation in this array is too long
-                        $percentage = ($this->longOperationPercentage / 100);
+                    //long result
+                    case ($meanTime > $this->mediumDuration):
+                        //percentage that decides whether a result in this array is too long
+                        $percentage = ($this->longPercentage / 100);
 
-                        //fill operation with standard info
-                        $this->longOperations[$operation] = $time;
+                        //fill result with standard info
+                        $this->longResults[$result] = $time;
 
                         //add all extra logic
-                        $this->longOperations[$operation] = $this->addOperationInformation($this->longOperations[$operation], $amount, $meanTime, $stats_standard_dev, $percentage);
+                        $this->longResults[$result] = $this->addOperationInformation($this->longResults[$result], $amount, $meanTime, $stats_standard_dev, $percentage);
                         break;
                 }
             }
@@ -210,56 +227,59 @@ class Deviation
     }
 
     /***
-     * Fill an operation with all needed values
+     * Fill an result with all needed values
      * Return the array filled with values
      *
-     * @param $operations
+     * @param $results
      * @param $amount
      * @param $meanTime
      * @param $stats_standard_dev
      * @param $percentage
      * @return mixed
      */
-    private function addOperationInformation($operations, $amount, $meanTime, $stats_standard_dev, $percentage)
+    private function addOperationInformation($results, $amount, $meanTime, $stats_standard_dev, $percentage)
     {
-        $operation = $operations;
+        $result = $results;
 
-        $operation["amount"] = $amount;
-        $operation["mean"] = $meanTime;
-        $operation["standardDev"] = $stats_standard_dev;
-        $operation["statistic_min"] = ($meanTime - 3 * $stats_standard_dev);
-        $operation["statistic_max"] = ($meanTime + 3 * $stats_standard_dev);
-        $operation["correct_plan"] = 0;
-        $operation["wrong_plan"] = 0;
-        $operation["meanPlanned"] = intval(array_sum($operation["planned"]) / count($operation["planned"]));
+        $result["amount"] = $amount;
+        $result["mean"] = $meanTime;
+        $result["standardDev"] = $stats_standard_dev;
+        $result["statistic_min"] = ($meanTime - 3 * $stats_standard_dev);
+        $result["statistic_max"] = ($meanTime + 3 * $stats_standard_dev);
+        $result["correct_plan"] = 0;
+        $result["wrong_plan"] = 0;
 
-        //check correctly planned
-        foreach ($operation["real"] as $time) {
-            if ($time < $operation["planned"]) {
-                $operation["correct_plan"]++;
+        if($this->secondComparison) {
+            $result["meanComparison"] = intval(array_sum($result["comparison"]) / count($result["comparison"]));
+        }
+
+        //check correctly comparison
+        foreach ($result["real"] as $time) {
+            if ($time < $result["comparison"]) {
+                $result["correct_plan"]++;
             } else {
-                $operation["wrong_plan"]++;
+                $result["wrong_plan"]++;
             }
         }
 
-        //save advise for the ability to plan this operation
-        $operation["advice"] = "Slecht inplanbaar";
+        //save advise for the ability to plan this result
+        $result["advice"] = $this->negativeFeedback;
 
 
         if ($stats_standard_dev < ($meanTime * $percentage)) {
-            $operation["advice"] = "Goed inplanbaar";
+            $result["advice"] = $this->positiveFeedback;
         }
 
         if ($amount < 2) {
-            $operation["advice"] = 'Te weinig data';
+            $result["advice"] = 'Te weinig data';
         }
 
-        return $operation;
+        return $result;
     }
 
     /***
-     * Sort operation arrays custom
-     * Order by duration of the operation
+     * Sort result arrays custom
+     * Order by duration of the result
      * @param $a
      * @param $b
      * @return int

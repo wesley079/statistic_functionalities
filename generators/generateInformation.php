@@ -46,11 +46,19 @@ class AnonymousJson
     /***
      * Input CSV file and get return an private JSON array
      * AnonymousJson constructor.
-     * @param $csv
+     * @param $file
+     * @param bool $jsonUpload
      */
-    public function __construct($csv)
+    public function __construct($file, $jsonUpload = false)
     {
-        $this->json = $this->csvtojson($csv, ",");
+        if(!$jsonUpload) {
+            //parse csv to json
+            $this->json = $this->csvtojson($file, ",");
+        }
+        else{
+            //json uploaded, update local variable
+            $this->json = file_get_contents($file);
+        }
 
         $this->RandomizeStaff();
         $this->RandomizePatient();

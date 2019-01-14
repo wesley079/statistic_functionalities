@@ -9,7 +9,7 @@ class Correlation
 {
 
     //adjustable private fields
-    private $keyToSearchFor = "Operatieduur";
+    private $keyToSearchFor = "";
 
     //fields
     public $filteredOperations = [];
@@ -20,17 +20,19 @@ class Correlation
      * Gets triggered when a Correlation class is made
      * Removes deviating cases
      * @param $json - decoded object with of all operations
-     * @param $operationTitle
+     * @param $mainKey
+     * @param $selectKey
      */
-    function Correlation($json, $operationTitle)
+    function Correlation($json, $searchKey, $selectKey, $selectKeyValue)
     {
         $selectedOperations = [];
         $allTimes = [];
         $meanTime = [];
+        $this->keyToSearchFor = $searchKey;
 
         foreach ($json as $operation) {
-            $key = "Verrichting 1";
-            if ($operation->$key === $operationTitle) {
+            $key = $selectKey;
+            if ($operation->$key === $selectKeyValue) {
                 array_push($selectedOperations, $operation);
 
 

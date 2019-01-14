@@ -3,17 +3,17 @@ include_once('generators/generateInformation.php');
 
 //generate new information
 if(isset($_POST["submit"])) {
-    if ( isset($_FILES["csv"])) {
+    if ( isset($_FILES["json"])) {
 
         //if there was an error uploading the file
-        if ($_FILES["csv"]["error"] > 0) {
-            echo "Mistake. Return Code: " . $_FILES["csv"]["error"] . "<br />";
+        if ($_FILES["json"]["error"] > 0) {
+            echo "Mistake. Return Code: " . $_FILES["json"]["error"] . "<br />";
 
         }
         else {
             //Store file in directory "upload" with the name of "uploaded_file.txt"
-            new AnonymousJson($_FILES["csv"]["tmp_name"]);
-            unlink($_FILES["csv"]["tmp_name"]);
+            new AnonymousJson($_FILES["json"]["tmp_name"], true);
+            unlink($_FILES["json"]["tmp_name"]);
 
             echo "Upload succesfull";
         }
@@ -27,7 +27,7 @@ if(isset($_POST["submit"])) {
     <html>
     <body>
     <a href="./demo/index.php"><button>Back to demo startscreen</button></a><br/><br/>
-    <h1>Upload CSV</h1>
+    <h1>Upload JSON</h1>
     <p>For operation specific data the following data will be made anonymous</p>
     <ul>
         <li>Casusnummer</li>
@@ -36,8 +36,7 @@ if(isset($_POST["submit"])) {
         <li>Patiënt geslacht</li>
         <li>Patiënt nummer</li>
         <?php
-        $array =  [
-            "2e Anesth. Assist. 1",
+        $array =  ["2e Anesth. Assist. 1",
             "2e Anesthesist 1",
             "2e Omloop 1",
             "2e operateur 1",
@@ -79,10 +78,10 @@ if(isset($_POST["submit"])) {
     </ul>
 
 
-    <form action="uploadCSV.php" method="post" enctype="multipart/form-data">
-        Select your .csv file
-        <input type="file" name="csv" id="csv" accept=".csv">
-        <input type="submit" value="CSV uploaden" name="submit">
+    <form action="uploadJson.php" method="post" enctype="multipart/form-data">
+        Select your .json file
+        <input type="file" name="json" id="json" accept=".json">
+        <input type="submit" value="json uploaden" name="submit">
     </form>
 
     </body>

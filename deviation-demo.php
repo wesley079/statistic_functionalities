@@ -1,7 +1,23 @@
 <?php
 include_once("functions/deviation.php");
 
-$deviation = new Deviation(json_decode(file_get_contents("generatedFiles/generatedInformation.json")), true);
+$options = [
+    "FileToCheck" => json_decode(file_get_contents("generatedFiles/generatedInformation.json")),
+    "KeyToSelect" => "Verrichting 1",
+    "KeyToSearchFor" => "Operatieduur",
+    "RemoveOutliers" => true,
+    "SecondComparison" => true,
+    "SecondKeyToFindDeviation" => "Geplande duur",
+    "FirstCategoryMax" => 20,
+    "MiddleCategoryMax" => 80,
+    "FirstPercentageMeasure" => 10,
+    "MiddlePercentageMeasure" => 12.5,
+    "LastPercentageMeasure" => 10
+
+];
+
+
+$deviation = new Deviation($options["FileToCheck"], $options["KeyToSelect"], $options["KeyToSearchFor"], $options["RemoveOutliers"], $options["SecondComparison"], $options["SecondKeyToFindDeviation"]);
 
 //change duration
 $deviation->shortOperationDuration = 20;
@@ -78,7 +94,7 @@ $deviationResults = $deviation->getDeviatingStatistics();
             <td><?= $time["advice"] ?></td>
             <td class="scrollable"><?= implode(",", $time["real"]) ?></td>
             <td class="scrollable"><?= implode('|', $time["removed"]) ?></td>
-            <td><?php if($time["amount"] >= 30){?> <a href="/afwijkingen?operation=<?= str_replace('+', '%plus%', $operation) ?>">Details</a> <?php } ?></td>
+            <td><?php if($time["amount"] >= 30){?> <a href="/afwijkingen/correlation-demo.php?operation=<?= str_replace('+', '%plus%', $operation) ?>">Details</a> <?php } ?></td>
         </tr>
     <?php endforeach; ?>
     </tbody>
@@ -116,7 +132,7 @@ $deviationResults = $deviation->getDeviatingStatistics();
             <td><?= $time["advice"] ?></td>
             <td class="scrollable"><?= implode("|", $time["real"]) ?></td>
             <td class="scrollable"><?= implode('|', $time["removed"]) ?></td>
-            <td><?php if($time["amount"] >= 30){?> <a href="/afwijkingen?operation=<?= str_replace('+', '%plus%', $operation) ?>">Details</a> <?php } ?></td>
+            <td><?php if($time["amount"] >= 30){?> <a href="/afwijkingen/correlation-demo.php?operation=<?= str_replace('+', '%plus%', $operation) ?>">Details</a> <?php } ?></td>
 
         </tr>
     <?php endforeach; ?>
@@ -156,7 +172,7 @@ $deviationResults = $deviation->getDeviatingStatistics();
             <td><?= $time["advice"] ?></td>
             <td class="scrollable"><?= implode("|", $time["real"]) ?></td>
             <td class="scrollable"><?= implode('|', $time["removed"]) ?></td>
-            <td><?php if($time["amount"] >= 30){?> <a href="/afwijkingen?operation=<?= str_replace('+', '%plus%', $operation) ?>">Details</a> <?php } ?></td>
+            <td><?php if($time["amount"] >= 30){?> <a href="/afwijkingen/correlation-demo.php?operation=<?= str_replace('+', '%plus%', $operation) ?>">Details</a> <?php } ?></td>
         </tr>
     <?php endforeach; ?>
     </tbody>
