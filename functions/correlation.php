@@ -92,6 +92,8 @@ class Correlation {
                         array_push($x, $operation->$key);
                         array_push($y, $operation->$possibleCorrelation);
                     }
+
+
                 }
 
                 //calculate values and save them in specified variables
@@ -99,6 +101,7 @@ class Correlation {
                 $return = $this->calculateDifference($rankedValueArray, $possibleCorrelation);
                 $difference = $return["difference"];
                 $count = $return["count"];
+
 
                 //if difference was calculated, calculate the coefficient
                 if ($difference !== false && $count >= 2) {
@@ -125,7 +128,7 @@ class Correlation {
      * @param $xTitle
      * @param $yTitle
      *
-     * @return string
+     * @return array
      */
     public function getCorrelationAdvise($correlationCoefficient, $xTitle, $yTitle) {
         //standard advise
@@ -138,39 +141,93 @@ class Correlation {
         switch ($correlationCoefficient) {
             case ($correlationCoefficient >= 0.9 && $correlationCoefficient <= 1):
                 //very high positive correlation
-                $advise = $positive . $correlationType . "very high correlation: " . $correlationCoefficient;
+                $advise =  [
+                    "key" => $xTitle,
+                    "compareKey" => $yTitle,
+                    "advice" => "hoger is",
+                    "weight" => "extreme correlatie",
+                    "coefficient" => $correlationCoefficient
+                ];
                 break;
             case ($correlationCoefficient <= -0.9 && $correlationCoefficient >= -1):
                 //very high negative correlation
-                $advise = $negative . $correlationType . "very high correlation: " . $correlationCoefficient;
+                $advise =  [
+                    "key" => $xTitle,
+                    "compareKey" => $yTitle,
+                    "advice" => "lager is",
+                    "weight" => "extreme correlatie",
+                    "coefficient" => $correlationCoefficient
+                ];
                 break;
             case ($correlationCoefficient >= 0.7 && $correlationCoefficient < 0.9):
                 //high positive correlation
-                $advise = $positive . $correlationType . "high correlation: " . $correlationCoefficient;
+                $advise =  [
+                    "key" => $xTitle,
+                    "compareKey" => $yTitle,
+                    "advice" => "hoger is",
+                    "weight" => "hoge correlatie",
+                    "coefficient" => $correlationCoefficient
+                ];
                 break;
             case ($correlationCoefficient <= -0.7 && $correlationCoefficient > -0.9):
                 //high negative correlation
-                $advise = $negative . $correlationType . "high correlation: " . $correlationCoefficient;
+                $advise =  [
+                    "key" => $xTitle,
+                    "compareKey" => $yTitle,
+                    "advice" => "lager is",
+                    "weight" => "hoge correlatie",
+                    "coefficient" => $correlationCoefficient
+                ];
                 break;
             case ($correlationCoefficient >= 0.5 && $correlationCoefficient < 0.7):
                 //moderate positive correlation
-                $advise = $positive . $correlationType . "moderate correlation: " . $correlationCoefficient;
+                $advise =  [
+                    "key" => $xTitle,
+                    "compareKey" => $yTitle,
+                    "advice" => "hoger is",
+                    "weight" => "gematigde correlatie",
+                    "coefficient" => $correlationCoefficient
+                ];
                 break;
             case ($correlationCoefficient <= -0.5 && $correlationCoefficient > -0.7):
                 //moderate negative correlation
-                $advise = $negative . $correlationType . "moderate correlation: " . $correlationCoefficient;
+                $advise =  [
+                    "key" => $xTitle,
+                    "compareKey" => $yTitle,
+                    "advice" => "lager is",
+                    "weight" => "gematigde correlatie",
+                    "coefficient" => $correlationCoefficient
+                ];
                 break;
             case ($correlationCoefficient >= 0.3 && $correlationCoefficient < 0.5):
                 //low positive correlation
-                $advise = $positive . $correlationType . "low correlation : " . $correlationCoefficient;
+                $advise =  [
+                    "key" => $xTitle,
+                    "compareKey" => $yTitle,
+                    "advice" => "hoger is",
+                    "weight" => "enige correlatie",
+                    "coefficient" => $correlationCoefficient
+                ];
                 break;
             case ($correlationCoefficient <= -0.3 && $correlationCoefficient > -0.5):
                 //low negative correlation
-                $advise = $negative . $correlationType . "low correlation : " . $correlationCoefficient;
+                $advise =  [
+                    "key" => $xTitle,
+                    "compareKey" => $yTitle,
+                    "advice" => "lager is",
+                    "weight" => "enige correlatie",
+                    "coefficient" => $correlationCoefficient
+                ];
                 break;
             case ($correlationCoefficient >= -0.3 && $correlationCoefficient < 0.3):
                 //negligible correlation
-                $advise = $non . $correlationType . " negligible correlation: " . $correlationCoefficient;
+                $advise =  [
+                    "key" => $xTitle,
+                    "compareKey" => $yTitle,
+                    "advice" => "hoger of lager is",
+                    "weight" => "verwaarloosbaar",
+                    "coefficient" => $correlationCoefficient
+                ];
                 break;
         }
 
