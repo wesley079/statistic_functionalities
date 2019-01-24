@@ -3,13 +3,13 @@
 namespace statisticFunctions\functions;
 
 use statisticFunctions\functions;
+
 /***
  * Correlation
  *
  * @author              Wesley Kroon <Wesleyk079@gmail.com>
  */
-class Correlation
-{
+class Correlation {
 
     //adjustable private fields
     private $keyToSearchFor = "";
@@ -23,6 +23,7 @@ class Correlation
     /***
      * Gets triggered when a Correlation class is made
      * Removes deviating cases
+     *
      * @param array $options
      */
     function __construct($options = [
@@ -31,14 +32,13 @@ class Correlation
         "KeyToSelect" => "",
         "ValueForKeyToSelect" => "",
         "ExcludeKeywords" => []
-    ])
-    {
+    ]) {
         //save variable to make use of further on this function
         $json = $options["FileToCheck"];
         $key = $options["KeyToSelect"];
         $selectKeyValue = $options["ValueForKeyToSelect"];
         $this->keyToSearchFor = $options["KeyToSearchFor"];
-
+        $this->excludeKeyWords = $options["ExcludeKeywords"];
 
         $selectedOperations = [];
         $allTimes = [];
@@ -73,8 +73,7 @@ class Correlation
      * - calculateCoefficient   / Calculates the correlation coefficient for each key that has a numeric value
      * @return array
      */
-    public function calculateCorrelations()
-    {
+    public function calculateCorrelations() {
         $allReturnArrays = [];
         $key_possibilities = $this->getAllPossibleKeys($this->filteredOperations);
 
@@ -121,13 +120,14 @@ class Correlation
     /***
      * Get an advise based on the correlation coefficient
      * This function will return a 'DUTCH' language advise.
+     *
      * @param $correlationCoefficient
      * @param $xTitle
      * @param $yTitle
+     *
      * @return string
      */
-    public function getCorrelationAdvise($correlationCoefficient, $xTitle, $yTitle)
-    {
+    public function getCorrelationAdvise($correlationCoefficient, $xTitle, $yTitle) {
         //standard advise
         $advise = 'Not possible to give an advise based on this number';
         $positive = "The variable '" . $xTitle . "' <b>looks like growing when </b> '" . $yTitle . "' is higher.";
@@ -173,23 +173,26 @@ class Correlation
                 $advise = $non . $correlationType . " negligible correlation: " . $correlationCoefficient;
                 break;
         }
+
         return $advise;
     }
 
 
     /**
      * Apply the Spearman's formula to the calculated d² and found n
+     *
      * @param $d2
      * @param $n
+     *
      * @return float|int
      */
-    private function calculateCoefficient($d2, $n)
-    {
+    private function calculateCoefficient($d2, $n) {
 
         $counter = 6 * $d2;
         $denominator = $n * (($n * $n) - 1);
 
         $coefficient = 1 - ($counter / $denominator);
+
         return $coefficient;
     }
 
@@ -201,14 +204,16 @@ class Correlation
      *
      * @param $array
      * @param $possibleCorrelationKey
+     *
      * @return array|bool
      */
-    private function calculateDifference($array, $possibleCorrelationKey)
-    {
+    private function calculateDifference($array, $possibleCorrelationKey) {
         //make sure both array have the same
-        if (!(count($array[$this->keyToSearchFor]) == count($array[$possibleCorrelationKey])) && count($array[$this->keyToSearchFor]) >= 30) {
+        if (!(count($array[$this->keyToSearchFor]) == count($array[$possibleCorrelationKey])) &&
+            count($array[$this->keyToSearchFor]) >= 30) {
             //warn for too few found elements in one of the two arrays
             trigger_error("The array has too few element", E_USER_WARNING);
+
             return false;
         }
         $totalDifference = 0;
@@ -222,7 +227,10 @@ class Correlation
             $totalDifference += ($difference * $difference);
         }
 
-        return ["difference" => $totalDifference, "count" => count($array[$this->keyToSearchFor]), "x" => $array[$this->keyToSearchFor], "y" => $array[$possibleCorrelationKey]];
+        return ["difference" => $totalDifference,
+                "count" => count($array[$this->keyToSearchFor]),
+                "x" => $array[$this->keyToSearchFor],
+                "y" => $array[$possibleCorrelationKey]];
     }
 
     /***
@@ -230,10 +238,10 @@ class Correlation
      * With these keys correlating numbers can be searched for
      *
      * @param $operations
+     *
      * @return array
      */
-    private function getAllPossibleKeys($operations)
-    {
+    private function getAllPossibleKeys($operations) {
         $key_array = [];
 
         foreach ($operations[0] as $key => $operationKey) {
@@ -248,14 +256,15 @@ class Correlation
     /***
      * Get the ranks of the values
      * Returns an array with both axes as title and ranks in the same order as sent to this function
+     *
      * @param $xTitle
      * @param $yTitle
      * @param $x
      * @param $y
+     *
      * @return array
      */
-    private function getRanks($xTitle, $yTitle, $x, $y)
-    {
+    private function getRanks($xTitle, $yTitle, $x, $y) {
         //calculate the rank for both values without changing order
         $x = $this->calculateRanks($x);
         $y = $this->calculateRanks($y);
@@ -272,22 +281,28 @@ class Correlation
      * There will be returned an list of array with the following keys
      * - Value
      * - Rank
+     *
      * @param $unOrdered
+     *
      * @return mixed
      */
-    private function calculateRanks($unOrdered)
-    {
+    private function calculateRanks($unOrdered) {
         $ordered = $unOrdered;
         arsort($ordered);
         $countArray = [];
 
         //make a count array to make sure how many time a single value was found
         foreach ($ordered as $number) {
+            //parse floats into integers
+            if(is_numeric($number)) {
+                $number = intval($number);
+            }
             if (!array_key_exists($number, $countArray)) {
                 $countArray[$number]["count"] = 1;
             } else {
                 $countArray[$number]["count"]++;
             }
+
         }
 
         //determine the rank for each value
@@ -332,10 +347,10 @@ class Correlation
      * @param $mean
      * @param $deviation
      * @param $operationArray
+     *
      * @return array
      */
-    private function removeOutliers($mean, $deviation, $operationArray)
-    {
+    private function removeOutliers($mean, $deviation, $operationArray) {
 
         $operationWithoutOutlier = [];
 
